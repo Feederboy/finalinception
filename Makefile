@@ -1,37 +1,22 @@
-all: up
+PATH_DOCKERYML = ./srcs/docker-compose.yml
 
-up:
-		systemctl restart docker 
-		docker compose -f srcs/docker-compose.yml build #--no-cache
-		docker compose -f srcs/docker-compose.yml up --force-recreate #-d --force-recreate
+all:
+	@sudo docker compose -f $(PATH_DOCKERYML) up -d --build
 
+re: clean all
 
-down:
-		docker compose -f srcs/docker-compose.yml down 
+stop:
+	@sudo docker compose -f $(PATH_DOCKERYML) stop
 
-ps:		
-		docker compose -f srcs/docker-compose.yml ps -a
-		docker ps -a
+clean: stop
+	@sudo docker compose -f $(PATH_DOCKERYML) down -v
 
-clean:	down
-		docker system prune
-		docker volume rm srcs_db srcs_wordpress
-
-		sudo rm -rf /home/${USER}/data/db
-		sudo rm -rf /home/${USER}/data/wordpress
+fclean: clean
+	@sudo docker system prune -af
+	sudo rm -rf /home/maquentr/data/db
+	sudo rm -rf /home/maquentr/data/wordpress
 		
-		mkdir -p /home/${USER}/data/db
-		mkdir -p /home/${USER}/data/wordpress
+	mkdir -p /home/maquentr/data/db
+	mkdir -p /home/maquentr/data/wordpress
 
-re : 	clean up
-
-mariadb:
-		docker exec -it mariadb bash
-nginx:
-		docker exec -it nginx bash
-
-wordpress:
-		docker exec -it wordpress bash
-
-
-.PHONY: start stop re ps clean
+.PHONY: all re stop clean fclean
