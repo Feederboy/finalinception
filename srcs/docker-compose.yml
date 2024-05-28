@@ -1,0 +1,65 @@
+version: '3'
+
+networks:
+  Inception:
+    driver: bridge
+
+
+volumes:
+  wordpress:
+    driver: local
+    driver_opts:
+      o: 'bind'
+      type: 'none'
+      device: '/home/maquentr/data/wordpress'
+  db:
+    driver: local
+    driver_opts:
+      o: 'bind'
+      type: 'none'
+      device: '/home/maquentr/data/db'
+
+
+services:
+
+  mariadb:
+    build: ./MariaDB/
+    image: mariadb
+    container_name: mariadb
+    env_file:
+      - "./.env"
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - Inception
+    restart: always
+
+  wordpress:
+    depends_on:
+      - mariadb
+    build: ./Wordpress/
+    image: wordpress
+    container_name: wordpress
+    env_file:
+      - "./.env"
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - Inception
+    restart: always
+
+  nginx:
+    depends_on:
+      - wordpress
+    build: ./Nginx/
+    container_name: nginx
+    image: nginx
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+        - Inception
+    restart: always
+
+
